@@ -44,20 +44,21 @@
 (defun cmake-utils--run (buffer-name process-name &rest args)
   "Run CMake with ARGS inside the current CMake project.
 
-If BUFFER-NAME is not nil, pop-up that buffer and display the output there.
+If BUFFER-NAME is non-nil, pop-up that buffer and display the output there.
 
 PROCESS-NAME is passed to `make-process'."
   (cmake-utils--expect-cmake-project)
-  (let ((buffer (if buffer-name (get-buffer-create buffer-name) nil)))
-    (when buffer
+  (let* ((process-connection-type nil)
+	 (pid (apply #'start-process process-name buffer-name
+		     cmake-utils-cmake-executable args)))
+    (when-let ((buffer (process-buffer pid)))
       (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (erase-buffer))
-        (special-mode)))
-    (prog1 (apply #'start-process process-name buffer
-		  cmake-utils-cmake-executable args)
-      (when buffer
-        (display-buffer buffer #'display-buffer-pop-up-window)))))
+	(special-mode)
+	(setq-local window-point-insertion-type t)
+	(goto-char (point-min))
+ 	(let ((inhibit-read-only t))
+	  (erase-buffer)))
+      (pop-to-buffer buffer))))
 
 ;;;###autoload
 (defun cmake-utils-configure ()
