@@ -89,8 +89,9 @@ PROCESS-NAME is passed to `make-process'."
 (defun cmake-utils-reconfigure ()
   "Reconfigure the CMake project."
   (interactive)
-  (delete-directory (cmake-utils--expect-build-dir) t)
-  (cmake-utils-configure))
+  (let ((build-dir (cmake-utils--expect-build-dir)))
+    (delete-file (concat build-dir "CMakeCache.txt"))
+    (cmake-utils-configure)))
 
 ;; TODO: add clean-build.
 
